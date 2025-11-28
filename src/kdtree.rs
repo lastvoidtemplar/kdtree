@@ -1,7 +1,4 @@
-use std::{
-    collections::BinaryHeap,
-    fmt::{Debug, Display},
-};
+use std::{collections::BinaryHeap, fmt::{Debug, Display}};
 
 #[derive(Debug)]
 struct Node<T> {
@@ -10,28 +7,42 @@ struct Node<T> {
     right: Option<Box<Node<T>>>,
 }
 
-struct PairDistanceValue<T> {
+struct PairDistanceValue<T, D>
+where
+    D: PartialOrd + PartialEq,
+{
     value: T,
-    dist: f64,
+    dist: D,
 }
 
-impl<T> PartialEq for PairDistanceValue<T> {
+impl<T, D> PartialEq for PairDistanceValue<T, D>
+where
+    D: PartialOrd + PartialEq,
+{
     fn eq(&self, other: &Self) -> bool {
         self.dist == other.dist
     }
 }
 
-impl<T> PartialOrd for PairDistanceValue<T> {
+impl<T, D> PartialOrd for PairDistanceValue<T, D>
+where
+    D: PartialOrd + PartialEq,
+{
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.dist.partial_cmp(&other.dist)
     }
 }
 
-impl<T> Eq for PairDistanceValue<T> {}
+impl<T, D> Eq for PairDistanceValue<T, D> where D: PartialOrd + PartialEq {}
 
-impl<T> Ord for PairDistanceValue<T> {
+impl<T, D> Ord for PairDistanceValue<T, D>
+where
+    D: PartialOrd + PartialEq,
+{
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.dist.total_cmp(&other.dist)
+        self.dist
+            .partial_cmp(&other.dist)
+            .unwrap_or(std::cmp::Ordering::Equal)
     }
 }
 
@@ -40,8 +51,8 @@ where
     T: Clone,
     D: PartialOrd,
     FMap: Fn(&T) -> D,
-    FDist: Fn(&T, &T) -> f64,
-    FRadius: Fn(&D, &D) -> f64,
+    FDist: Fn(&T, &T) -> D,
+    FRadius: Fn(&D, &D) -> D,
 {
     root: Option<Box<Node<T>>>,
     dimensions: Vec<FMap>,
@@ -54,8 +65,8 @@ where
     T: Clone,
     D: PartialOrd,
     FMap: Fn(&T) -> D,
-    FDist: Fn(&T, &T) -> f64,
-    FRadius: Fn(&D, &D) -> f64,
+    FDist: Fn(&T, &T) -> D,
+    FRadius: Fn(&D, &D) -> D,
 {
     pub fn new(
         mut data: Vec<T>,
@@ -129,9 +140,9 @@ where
         }))
     }
 
-    pub fn find_k_nearest_neighbors(&self, target: T, k: usize) -> Vec<T> {
+    pub fn find_k_nearest_neighbors(&self, target: &T, k: usize) -> Vec<T> {
         let mut heap = BinaryHeap::new();
-        self.knn(&target, k, &self.root, 0, &mut heap);
+        self.knn(target, k, &self.root, 0, &mut heap);
         let mut pairs = heap.into_vec();
         pairs.sort_by(|a, b| {
             a.dist
@@ -147,7 +158,7 @@ where
         k: usize,
         node: &Option<Box<Node<T>>>,
         dimension_ind: usize,
-        heap: &mut BinaryHeap<PairDistanceValue<T>>,
+        heap: &mut BinaryHeap<PairDistanceValue<T, D>>,
     ) {
         match node {
             None => return,
@@ -195,8 +206,8 @@ where
     T: Clone + Debug,
     D: PartialOrd + Debug,
     FMap: Fn(&T) -> D,
-    FDist: Fn(&T, &T) -> f64,
-    FRadius: Fn(&D, &D) -> f64,
+    FDist: Fn(&T, &T) -> D,
+    FRadius: Fn(&D, &D) -> D,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self.root)

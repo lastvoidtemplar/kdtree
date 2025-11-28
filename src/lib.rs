@@ -70,7 +70,7 @@ mod tests {
 
         let tree = kdtree::KDTree::new(data, dimensions, dist_func, radius_func);
 
-        let neighbors = tree.find_k_nearest_neighbors(Point { x: 782.0, y: 780.0 }, 1);
+        let neighbors = tree.find_k_nearest_neighbors(&Point { x: 782.0, y: 780.0 }, 1);
 
         println!("{:?}", neighbors)
     }
@@ -110,7 +110,7 @@ mod tests {
 
         let tree = kdtree::KDTree::new(data, dimensions, dist_func, radius_func);
 
-        let neighbors = tree.find_k_nearest_neighbors(Point { x: 260.0, y: 585.0 }, 5);
+        let neighbors = tree.find_k_nearest_neighbors(&Point { x: 260.0, y: 585.0 }, 5);
 
         println!("{:?}", neighbors)
     }
