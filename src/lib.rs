@@ -12,7 +12,7 @@ mod tests {
 
     #[test]
     fn test_kdtree_new() {
-        let mut data = [
+        let data = vec![
             Point { x: 615.0, y: 40.0 },
             Point { x: 207.0, y: 313.0 },
             Point { x: 751.0, y: 177.0 },
@@ -30,14 +30,14 @@ mod tests {
 
         let radius_func = |d1: &f64, d2: &f64| (d1 - d2).abs();
 
-        let new_kdtree = kdtree::KDTree::new(&mut data, dimensions, dist_func, radius_func);
+        let new_kdtree = kdtree::KDTree::new(data, dimensions, dist_func, radius_func);
 
         println!("{}", new_kdtree)
     }
 
     #[test]
     fn test_kdtree_find_k_nearest_neighbors_1() {
-        let mut data = [
+        let data = vec![
             Point { x: 272.0, y: 59.0 },
             Point { x: 481.0, y: 144.0 },
             Point { x: 915.0, y: 157.0 },
@@ -68,7 +68,7 @@ mod tests {
 
         let radius_func = |d1: &f64, d2: &f64| (d1 - d2).abs();
 
-        let tree = kdtree::KDTree::new(&mut data, dimensions, dist_func, radius_func);
+        let tree = kdtree::KDTree::new(data, dimensions, dist_func, radius_func);
 
         let neighbors = tree.find_k_nearest_neighbors(Point { x: 782.0, y: 780.0 }, 1);
 
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn test_kdtree_find_k_nearest_neighbors_2() {
-        let mut data = [
+        let data = vec![
             Point { x: 272.0, y: 59.0 },
             Point { x: 481.0, y: 144.0 },
             Point { x: 915.0, y: 157.0 },
@@ -108,7 +108,7 @@ mod tests {
 
         let radius_func = |d1: &f64, d2: &f64| (d1 - d2).abs();
 
-        let tree = kdtree::KDTree::new(&mut data, dimensions, dist_func, radius_func);
+        let tree = kdtree::KDTree::new(data, dimensions, dist_func, radius_func);
 
         let neighbors = tree.find_k_nearest_neighbors(Point { x: 260.0, y: 585.0 }, 5);
 

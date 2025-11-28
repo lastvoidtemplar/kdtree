@@ -58,22 +58,55 @@ where
     FRadius: Fn(&D, &D) -> f64,
 {
     pub fn new(
-        data: &mut [T],
+        mut data: Vec<T>,
         dimensions: Vec<FMap>,
         dist_func: FDist,
         radius_func: FRadius,
     ) -> Self {
         Self {
-            root: Self::build_node(data, &dimensions, 0),
+            root: Self::build_node(&mut data, &dimensions, 0),
             dimensions,
             dist_func,
             radius_func,
         }
     }
 
-    fn sort_data_by_dimension<'a>(data: &'a mut [T], dimension: &FMap) {
-        data.sort_by(|a, b| dimension(a).partial_cmp(&dimension(b)).unwrap_or(std::cmp::Ordering::Equal));
+    fn partition(data: &mut [T], dimension: &FMap) -> usize {
+        let len = data.len();
+        let pivot = dimension(&data[len - 1]);
+        let mut i = 0;
+        for j in 0..(len - 1) {
+            if dimension(&data[j]) <= pivot {
+                data.swap(i, j);
+                i += 1;
+            }
+        }
+        data.swap(i, len - 1);
+        i
     }
+
+    fn quick_selection<'a>(data: &'a mut [T], dimension: &FMap, ind: usize) -> &'a T {
+        if data.len() == 1 {
+            return &data[0];
+        }
+
+        let pivot_ind = Self::partition(data, dimension);
+        if ind == pivot_ind {
+            &data[ind]
+        } else if ind < pivot_ind {
+            Self::quick_selection(&mut data[..pivot_ind], dimension, ind)
+        } else {
+            Self::quick_selection(&mut data[pivot_ind + 1..], dimension, ind - pivot_ind - 1)
+        }
+    }
+
+    // fn sort_data_by_dimension(data: &mut [T], dimension: &FMap) {
+    //     data.sort_by(|a, b| {
+    //         dimension(a)
+    //             .partial_cmp(&dimension(b))
+    //             .unwrap_or(std::cmp::Ordering::Equal)
+    //     });
+    // }
 
     fn build_node(
         data: &mut [T],
@@ -84,9 +117,8 @@ where
             return None;
         }
 
-        Self::sort_data_by_dimension(data, &dimensions[dimension_ind]);
         let median_ind = data.len() / 2;
-        let median = data[median_ind].clone();
+        let median = Self::quick_selection(data, &dimensions[dimension_ind], median_ind).clone();
 
         let next_dimension_ind = (dimension_ind + 1) % dimensions.len();
 
@@ -101,7 +133,11 @@ where
         let mut heap = BinaryHeap::new();
         self.knn(&target, k, &self.root, 0, &mut heap);
         let mut pairs = heap.into_vec();
-        pairs.sort_by(|a,b|a.dist.partial_cmp(&b.dist).unwrap_or(std::cmp::Ordering::Equal));
+        pairs.sort_by(|a, b| {
+            a.dist
+                .partial_cmp(&b.dist)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         pairs.iter().map(|p| p.value.clone()).collect()
     }
 
